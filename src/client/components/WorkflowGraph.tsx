@@ -43,6 +43,7 @@ interface WorkflowGraphProps {
   definition: GraphDefinition;
   steps?: WorkflowStep[];
   title?: string;
+  showLegend?: boolean;
 }
 
 interface GraphNode {
@@ -64,7 +65,8 @@ interface GraphEdge {
 export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({ 
   definition, 
   steps = [], 
-  title = "Workflow Graph" 
+  title = "Workflow Graph",
+  showLegend = true
 }) => {
   const [nodes, setNodes] = React.useState<GraphNode[]>([]);
   const [edges, setEdges] = React.useState<GraphEdge[]>([]);
@@ -133,11 +135,30 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
       };
       nodeMap.set(stepName, node);
       
-      if (step.next) {
-        step.next.forEach(nextStep => {
-          edgeList.push({ from: stepName, to: nextStep, type: 'normal' });
-          traverse(nextStep, level + 1);
+      // Handle parallel steps
+      if (step.parallel) {
+        step.parallel.forEach(parallelStep => {
+          edgeList.push({ from: stepName, to: parallelStep, type: 'parallel' });
+          traverse(parallelStep, level + 1);
         });
+        
+        // For parallel steps, connect them to the next step after parallel
+        if (step.next) {
+          step.next.forEach(nextStep => {
+            step.parallel!.forEach(parallelStep => {
+              edgeList.push({ from: parallelStep, to: nextStep, type: 'normal' });
+            });
+            traverse(nextStep, level + 2);
+          });
+        }
+      } else {
+        // Handle normal next steps
+        if (step.next) {
+          step.next.forEach(nextStep => {
+            edgeList.push({ from: stepName, to: nextStep, type: 'normal' });
+            traverse(nextStep, level + 1);
+          });
+        }
       }
       
       if (step.else) {
@@ -145,14 +166,35 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
         traverse(step.else, level + 1);
       }
       
-      // Don't traverse compensation steps as separate nodes
-      // They will be shown as chips on the main steps
+      // Handle fork+join pattern
+      if (step.type === 'fork') {
+        // Fork connects to first steps of each branch
+        if (step.next) {
+          step.next.forEach(branchStart => {
+            edgeList.push({ from: stepName, to: branchStart, type: 'normal' });
+            traverse(branchStart, level + 1);
+          });
+        }
+        // Don't traverse next steps from fork - they will be handled by join
+        return;
+      }
       
-      if (step.parallel) {
-        step.parallel.forEach(parallelStep => {
-          edgeList.push({ from: stepName, to: parallelStep, type: 'parallel' });
-          traverse(parallelStep, level + 1);
+      // Handle join - find all steps that should connect to join
+      if (step.type === 'join') {
+        // Find all steps that should connect to this join
+        Object.keys(definition.steps).forEach(stepKey => {
+          const otherStep = definition.steps[stepKey];
+          if (otherStep.next && otherStep.next.includes(stepName)) {
+            // This step should connect to join
+            edgeList.push({ from: stepKey, to: stepName, type: 'normal' });
+          }
         });
+        // Continue traversal from join
+        if (step.next) {
+          step.next.forEach(nextStep => {
+            traverse(nextStep, level + 1);
+          });
+        }
       }
     };
     
@@ -184,8 +226,21 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
       height: Math.max(prev.height, maxY)
     }));
     
+    // Filter out direct connections from fork to join
+    const filteredEdges = edgeList.filter(edge => {
+      const fromStep = definition.steps[edge.from];
+      const toStep = definition.steps[edge.to];
+      
+      // Remove direct connection from fork to join
+      if (fromStep && toStep && fromStep.type === 'fork' && toStep.type === 'join') {
+        return false;
+      }
+      
+      return true;
+    });
+    
     setNodes(Array.from(nodeMap.values()));
-    setEdges(edgeList);
+    setEdges(filteredEdges);
   }, [definition, dimensions, getStepStatus]);
 
   React.useEffect(() => {
@@ -285,7 +340,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               width: node.width,
               height: node.height,
               background: getStepGradient(node.id),
-              border: 'none',
+              border: '1px solid rgba(255,255,255,0.2)',
               borderRadius: '12px',
               display: 'flex',
               flexDirection: 'column',
@@ -297,8 +352,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               cursor: 'pointer',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               backdropFilter: 'blur(10px)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)'
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)';
@@ -363,7 +417,8 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
         ))}
       </div>
       
-      <div className="graph-legend">
+      {showLegend && (
+        <div className="graph-legend">
         <div>
           <div style={{ 
             width: '16px', 
@@ -433,6 +488,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
           <span>Has Compensation</span>
         </div>
       </div>
+      )}
     </div>
   );
 };

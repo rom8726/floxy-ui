@@ -86,6 +86,7 @@ export const WorkflowDetail: React.FC = () => {
         <WorkflowGraph 
           definition={workflow.definition} 
           title={`${workflow.name} v${workflow.version} - Definition`}
+          showLegend={false}
         />
       </div>
 
