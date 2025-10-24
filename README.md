@@ -23,8 +23,7 @@ npm run dev
 ```
 
 The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
+- Frontend: http://localhost:3002
 
 ### Production
 
@@ -43,7 +42,7 @@ npm start
 docker build -t floxy-ui .
 
 # Run container
-docker run -p 3001:3001 \
+docker run -p 3002:3002 \
   -e DB_HOST=your-db-host \
   -e DB_PORT=5432 \
   -e DB_NAME=floxy \
@@ -59,7 +58,7 @@ docker run -p 3001:3001 \
 - `DB_NAME`: Database name (default: floxy)
 - `DB_USER`: Database user (default: floxy)
 - `DB_PASSWORD`: Database password (default: password)
-- `PORT`: Server port (default: 3001)
+- `PORT`: Server port (default: 3002)
 
 ## API Endpoints
 
