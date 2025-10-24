@@ -76,7 +76,7 @@ export const WorkflowDetail: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: '1rem' }}>
-        <Link to="/workflows" className="btn btn-secondary">← Back to Workflows</Link>
+        <Link to="/workflows" className="btn btn-nav">← Back to Workflows</Link>
       </div>
 
       <h1>{workflow.name} v{workflow.version}</h1>

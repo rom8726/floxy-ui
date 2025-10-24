@@ -82,16 +82,16 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
     return stepStatusMap.get(stepName) || 'pending';
   };
 
-  const getStepColor = (stepName: string): string => {
+  const getStepGradient = (stepName: string): string => {
     const status = getStepStatus(stepName);
     switch (status) {
-      case 'completed': return '#10b981';
-      case 'failed': return '#ef4444';
-      case 'running': return '#3b82f6';
-      case 'compensation': return '#8b5cf6';
-      case 'rolled_back': return '#f59e0b';
-      case 'skipped': return '#6b7280';
-      default: return '#e5e7eb';
+      case 'completed': return 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+      case 'failed': return 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+      case 'running': return 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+      case 'compensation': return 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)';
+      case 'rolled_back': return 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+      case 'skipped': return 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+      default: return 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
     }
   };
 
@@ -284,27 +284,31 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               top: node.y,
               width: node.width,
               height: node.height,
-              backgroundColor: getStepColor(node.id),
-              border: '2px solid #374151',
-              borderRadius: '8px',
+              background: getStepGradient(node.id),
+              border: 'none',
+              borderRadius: '12px',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '12px',
-              fontWeight: '500',
-              color: '#1f2937',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              fontWeight: '600',
+              color: 'white',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)';
               e.currentTarget.style.zIndex = '10';
+              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.2)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.transform = 'scale(1) translateY(0)';
               e.currentTarget.style.zIndex = '1';
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.1)';
             }}
           >
             <div style={{ fontSize: '16px', marginBottom: '2px' }}>
@@ -327,19 +331,30 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               <div
                 style={{
                   position: 'absolute',
-                  top: '-8px',
-                  right: '-8px',
-                  backgroundColor: '#8b5cf6',
+                  top: '-10px',
+                  right: '-10px',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
                   color: 'white',
-                  fontSize: '8px',
-                  fontWeight: '600',
-                  padding: '2px 6px',
-                  borderRadius: '10px',
-                  border: '2px solid white',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                  zIndex: 5
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  padding: '4px 8px',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  boxShadow: '0 4px 12px rgba(139, 92, 246, 0.4)',
+                  zIndex: 5,
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
                 }}
                 title={`Compensation: ${node.step.on_failure}`}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.4)';
+                }}
               >
                 ⚡
               </div>
@@ -348,43 +363,74 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
         ))}
       </div>
       
-      <div className="graph-legend" style={{ marginTop: '16px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }}></div>
-          <span style={{ fontSize: '12px' }}>Completed</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '2px' }}></div>
-          <span style={{ fontSize: '12px' }}>Failed</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }}></div>
-          <span style={{ fontSize: '12px' }}>Running</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }}></div>
-          <span style={{ fontSize: '12px' }}>Rolled Back</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <div style={{ width: '12px', height: '12px', backgroundColor: '#e5e7eb', borderRadius: '2px' }}></div>
-          <span style={{ fontSize: '12px' }}>Pending</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <div className="graph-legend">
+        <div>
           <div style={{ 
             width: '16px', 
             height: '16px', 
-            backgroundColor: '#8b5cf6', 
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+          }}></div>
+          <span>Completed</span>
+        </div>
+        <div>
+          <div style={{ 
+            width: '16px', 
+            height: '16px', 
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+          }}></div>
+          <span>Failed</span>
+        </div>
+        <div>
+          <div style={{ 
+            width: '16px', 
+            height: '16px', 
+            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+          }}></div>
+          <span>Running</span>
+        </div>
+        <div>
+          <div style={{ 
+            width: '16px', 
+            height: '16px', 
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+          }}></div>
+          <span>Rolled Back</span>
+        </div>
+        <div>
+          <div style={{ 
+            width: '16px', 
+            height: '16px', 
+            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+          }}></div>
+          <span>Pending</span>
+        </div>
+        <div>
+          <div style={{ 
+            width: '20px', 
+            height: '20px', 
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '8px',
+            fontSize: '10px',
             color: 'white',
-            fontWeight: '600'
+            fontWeight: '700',
+            boxShadow: '0 4px 12px rgba(139, 92, 246, 0.4)'
           }}>
             ⚡
           </div>
-          <span style={{ fontSize: '12px' }}>Has Compensation</span>
+          <span>Has Compensation</span>
         </div>
       </div>
     </div>

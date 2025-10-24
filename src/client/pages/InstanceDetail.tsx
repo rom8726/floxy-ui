@@ -118,7 +118,7 @@ export const InstanceDetail: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: '1rem' }}>
-        <Link to="/instances" className="btn btn-secondary">← Back to Instances</Link>
+        <Link to="/instances" className="btn btn-nav">← Back to Instances</Link>
       </div>
 
       <h1>Instance {instance.id}</h1>
