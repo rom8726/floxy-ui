@@ -8,6 +8,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rom8726/floxy"
 	"github.com/rom8726/floxy/api"
+	"github.com/rom8726/floxy/plugins/api/abort"
+	"github.com/rom8726/floxy/plugins/api/cancel"
 	human_decision "github.com/rom8726/floxy/plugins/api/human-decision"
 
 	"github.com/rom8726/floxy-ui/internal/config"
@@ -39,10 +41,22 @@ func New(cfg *config.Config) (*Server, error) {
 	store := floxy.NewStore(pool)
 	txManager := floxy.NewTxManager(pool)
 	engine := floxy.NewEngine(txManager, store)
+
 	humanDecisionPlugin := human_decision.New(engine, store, func(*http.Request) (string, error) {
 		return "admin", nil
 	})
-	floxyServer := api.New(engine, store, api.WithPlugins(humanDecisionPlugin))
+	cancelPlugin := cancel.New(engine, func(req *http.Request) (string, error) {
+		return "admin", nil
+	})
+	abortPlugin := abort.New(engine, func(req *http.Request) (string, error) {
+		return "admin", nil
+	})
+
+	floxyServer := api.New(engine, store, api.WithPlugins(
+		humanDecisionPlugin,
+		cancelPlugin,
+		abortPlugin,
+	))
 
 	return &Server{
 		config: cfg,
