@@ -47,7 +47,7 @@ export const Dashboard: React.FC = () => {
         const activeData = await activeRes.json();
 
         setSummary(summaryData);
-        setActiveWorkflows(activeData);
+        setActiveWorkflows(activeData && Array.isArray(activeData) ? activeData : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -101,7 +101,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="card">
         <h2>Active Workflows</h2>
-        {activeWorkflows.length === 0 ? (
+        {!activeWorkflows || activeWorkflows.length === 0 ? (
           <p>No active workflows</p>
         ) : (
           <table className="table">

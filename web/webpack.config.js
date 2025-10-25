@@ -2,9 +2,9 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/client/index.tsx',
+  entry: './src/index.tsx',
   output: {
-    path: path.resolve(__dirname, 'dist/public'),
+    path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     publicPath: '/'
   },
@@ -32,12 +32,12 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/client/index.html'
+      template: './public/index.html'
     })
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, 'dist/public')
+      directory: path.join(__dirname, 'dist')
     },
     port: 3000,
     hot: true,
