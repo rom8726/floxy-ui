@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rom8726/floxy"
 	"github.com/rom8726/floxy/api"
+	human_decision "github.com/rom8726/floxy/plugins/api/human-decision"
 
 	"github.com/rom8726/floxy-ui/internal/config"
 )
@@ -36,7 +37,12 @@ func New(cfg *config.Config) (*Server, error) {
 
 	// Create a floxy server
 	store := floxy.NewStore(pool)
-	floxyServer := api.New(nil, store)
+	txManager := floxy.NewTxManager(pool)
+	engine := floxy.NewEngine(txManager, store)
+	humanDecisionPlugin := human_decision.New(engine, store, func(*http.Request) (string, error) {
+		return "admin", nil
+	})
+	floxyServer := api.New(engine, store, api.WithPlugins(humanDecisionPlugin))
 
 	return &Server{
 		config: cfg,
