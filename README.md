@@ -53,17 +53,6 @@ make docker-run
 - `DB_USER` - Database user (default: floxy)
 - `DB_PASSWORD` - Database password (default: password)
 
-## API Endpoints
-
-- `GET /api/workflows` - List workflow definitions
-- `GET /api/workflows/{id}` - Get workflow definition
-- `GET /api/workflows/{id}/instances` - Get workflow instances
-- `GET /api/instances` - List all instances
-- `GET /api/instances/{id}` - Get workflow instance
-- `GET /api/instances/{id}/steps` - Get instance steps
-- `GET /api/instances/{id}/events` - Get instance events
-- `GET /api/stats` - Get workflow statistics
-
 ## Architecture
 
 ```
