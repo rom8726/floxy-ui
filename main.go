@@ -21,7 +21,7 @@ func main() {
 	}
 	defer srv.Close()
 
-	// Handle graceful shutdown
+	// Handle a graceful shutdown
 	go func() {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)

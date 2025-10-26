@@ -40,7 +40,7 @@ func New(cfg *config.Config) (*Server, error) {
 
 	// Create a floxy server
 	store := floxy.NewStore(pool)
-	engine := floxy.NewEngine(pool, store)
+	engine := floxy.NewEngine(pool)
 
 	humanDecisionPlugin := human_decision.New(engine, store, func(*http.Request) (string, error) {
 		return "admin", nil
