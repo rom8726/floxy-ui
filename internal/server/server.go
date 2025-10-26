@@ -18,6 +18,7 @@ import (
 type Server struct {
 	config *config.Config
 	pool   *pgxpool.Pool
+	engine *floxy.Engine
 	floxy  *api.Server
 }
 
@@ -39,8 +40,7 @@ func New(cfg *config.Config) (*Server, error) {
 
 	// Create a floxy server
 	store := floxy.NewStore(pool)
-	txManager := floxy.NewTxManager(pool)
-	engine := floxy.NewEngine(txManager, store)
+	engine := floxy.NewEngine(pool, store)
 
 	humanDecisionPlugin := human_decision.New(engine, store, func(*http.Request) (string, error) {
 		return "admin", nil
@@ -61,6 +61,7 @@ func New(cfg *config.Config) (*Server, error) {
 	return &Server{
 		config: cfg,
 		pool:   pool,
+		engine: engine,
 		floxy:  floxyServer,
 	}, nil
 }
@@ -96,6 +97,9 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Close() {
+	if s.engine != nil {
+		s.engine.Shutdown()
+	}
 	if s.pool != nil {
 		s.pool.Close()
 	}
