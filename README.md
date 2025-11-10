@@ -2,6 +2,8 @@
 
 A web interface for monitoring Floxy workflows.
 
+Preferable for dev usage. If you want use advanced manager, use [Floxy Manager](https://github.com/floxy-project/floxy-manager).
+
 ## Features
 
 - **Go Backend**: High-performance backend using the Floxy library
