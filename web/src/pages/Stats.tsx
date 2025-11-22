@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BarChart3, TrendingUp, CheckCircle2, XCircle, PlayCircle, Workflow, Clock, Loader2, Database } from 'lucide-react';
 
 interface WorkflowStats {
     workflow_name: string;
@@ -35,7 +36,12 @@ export const Stats: React.FC = () => {
     }, []);
 
     if (loading) {
-        return <div className="loading">Loading statistics...</div>;
+        return (
+            <div className="loading flex items-center justify-center gap-3">
+                <Loader2 className="animate-spin text-primary" size={24} />
+                <span>Loading statistics...</span>
+            </div>
+        );
     }
 
     if (error) {
@@ -58,81 +64,149 @@ export const Stats: React.FC = () => {
         return ((completed / total) * 100).toFixed(1);
     };
 
+    const summaryStats = [
+        { 
+            label: 'Total Instances', 
+            value: stats.reduce((sum, stat) => sum + stat.total_instances, 0),
+            icon: Database,
+            color: 'from-primary to-primary-dark'
+        },
+        { 
+            label: 'Completed', 
+            value: stats.reduce((sum, stat) => sum + stat.completed_instances, 0),
+            icon: CheckCircle2,
+            color: 'from-green-500 to-green-600'
+        },
+        { 
+            label: 'Failed', 
+            value: stats.reduce((sum, stat) => sum + stat.failed_instances, 0),
+            icon: XCircle,
+            color: 'from-red-500 to-red-600'
+        },
+        { 
+            label: 'Running', 
+            value: stats.reduce((sum, stat) => sum + stat.running_instances, 0),
+            icon: PlayCircle,
+            color: 'from-purple-500 to-purple-600'
+        },
+        { 
+            label: 'Workflow Types', 
+            value: stats.length,
+            icon: Workflow,
+            color: 'from-blue-500 to-blue-600'
+        },
+    ];
+
     return (
         <div>
-            <h1>Workflow Statistics</h1>
-
-            <div className="card">
-                {stats.length === 0 ? (
-                    <p>No statistics available</p>
-                ) : (
-                    <table className="table">
-                        <thead>
-                        <tr>
-                            <th>Workflow</th>
-                            <th>Version</th>
-                            <th>Total Instances</th>
-                            <th>Completed</th>
-                            <th>Failed</th>
-                            <th>Running</th>
-                            <th>Success Rate</th>
-                            <th>Avg Duration</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {stats.map((stat, index) => (
-                            <tr key={`${stat.workflow_name}-${stat.version}`}>
-                                <td>{stat.workflow_name}</td>
-                                <td>v{stat.version}</td>
-                                <td>{stat.total_instances}</td>
-                                <td>{stat.completed_instances}</td>
-                                <td>{stat.failed_instances}</td>
-                                <td>{stat.running_instances}</td>
-                                <td>
-                                    {getSuccessRate(stat.completed_instances, stat.total_instances)}%
-                                </td>
-                                <td>{formatDuration(stat.average_duration)}</td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                )}
+            <div className="mb-8">
+                <h1 
+                  className="text-4xl font-bold mb-2 relative inline-block"
+                  style={{ 
+                    color: 'var(--text-primary)',
+                    background: 'linear-gradient(135deg, var(--text-primary), var(--accent), var(--gradient-end))',
+                    backgroundSize: '200% 200%',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'gradient-shift 6s ease infinite',
+                  }}
+                >
+                    Workflow Statistics
+                    <div 
+                      className="absolute bottom-0 left-0 w-24 h-1 rounded-full"
+                      style={{
+                        background: 'linear-gradient(to right, var(--gradient-start), var(--gradient-end))',
+                      }}
+                    ></div>
+                </h1>
+                <p className="text-lg mt-4" style={{ color: 'var(--text-secondary)' }}>Detailed statistics for all workflows</p>
             </div>
 
             <div className="card">
-                <h2>Summary</h2>
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-number">
-                            {stats.reduce((sum, stat) => sum + stat.total_instances, 0)}
-                        </div>
-                        <div className="stat-label">Total Instances</div>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                        <BarChart3 className="text-primary" size={24} />
                     </div>
-                    <div className="stat-card">
-                        <div className="stat-number">
-                            {stats.reduce((sum, stat) => sum + stat.completed_instances, 0)}
-                        </div>
-                        <div className="stat-label">Completed</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-number">
-                            {stats.reduce((sum, stat) => sum + stat.failed_instances, 0)}
-                        </div>
-                        <div className="stat-label">Failed</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-number">
-                            {stats.reduce((sum, stat) => sum + stat.running_instances, 0)}
-                        </div>
-                        <div className="stat-label">Running</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-number">
-                            {stats.length}
-                        </div>
-                        <div className="stat-label">Workflow Types</div>
-                    </div>
+                    <h2 className="text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>Summary</h2>
                 </div>
+                <div className="stats-grid">
+                    {summaryStats.map((stat, index) => {
+                        const Icon = stat.icon;
+                        return (
+                            <div key={index} className="stat-card">
+                                <div className="stat-number">{stat.value}</div>
+                                <div className="stat-label">{stat.label}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="card">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                        <TrendingUp className="text-primary" size={24} />
+                    </div>
+                    <h2 className="text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>Detailed Statistics</h2>
+                </div>
+                {stats.length === 0 ? (
+                    <div className="text-center py-12">
+                        <BarChart3 className="mx-auto mb-4" size={48} style={{ color: 'var(--text-secondary)' }} />
+                        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>No statistics available</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Workflow</th>
+                                    <th>Version</th>
+                                    <th>Total</th>
+                                    <th>Completed</th>
+                                    <th>Failed</th>
+                                    <th>Running</th>
+                                    <th>Success Rate</th>
+                                    <th>Avg Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stats.map((stat, index) => {
+                                    const successRate = getSuccessRate(stat.completed_instances, stat.total_instances);
+                                    return (
+                                        <tr key={`${stat.workflow_name}-${stat.version}`}>
+                                            <td className="font-semibold">{stat.workflow_name}</td>
+                                            <td>
+                                                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                                                    v{stat.version}
+                                                </span>
+                                            </td>
+                                            <td>{stat.total_instances}</td>
+                                            <td className="text-green-600 font-semibold">{stat.completed_instances}</td>
+                                            <td className="text-red-600 font-semibold">{stat.failed_instances}</td>
+                                            <td className="text-purple-600 font-semibold">{stat.running_instances}</td>
+                                            <td>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                                        <div 
+                                                            className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full"
+                                                            style={{ width: `${successRate}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="font-semibold">{successRate}%</span>
+                                                </div>
+                                            </td>
+                                            <td className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                                                <Clock size={16} />
+                                                {formatDuration(stat.average_duration)}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );

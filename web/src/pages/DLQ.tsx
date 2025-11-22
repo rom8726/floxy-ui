@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { AlertCircle, Eye, Calendar, ChevronLeft, ChevronRight, Loader2, ExternalLink } from 'lucide-react';
 
 interface DeadLetterItem {
   id: number;
@@ -55,7 +56,12 @@ export const DLQ: React.FC = () => {
   const totalPages = Math.ceil(totalItems / pageSize);
 
   if (loading) {
-    return <div className="loading">Loading DLQ items...</div>;
+    return (
+      <div className="loading flex items-center justify-center gap-3">
+        <Loader2 className="animate-spin text-primary" size={24} />
+        <span>Loading DLQ items...</span>
+      </div>
+    );
   }
 
   if (error) {
@@ -64,76 +70,119 @@ export const DLQ: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>Dead Letter Queue</h1>
-        <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 
+            className="text-4xl font-bold mb-2 relative inline-block"
+            style={{ 
+              color: 'var(--text-primary)',
+              background: 'linear-gradient(135deg, var(--text-primary), var(--accent), var(--gradient-end))',
+              backgroundSize: '200% 200%',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              animation: 'gradient-shift 6s ease infinite',
+            }}
+          >
+            Dead Letter Queue
+            <div 
+              className="absolute bottom-0 left-0 w-24 h-1 rounded-full"
+              style={{
+                background: 'linear-gradient(to right, var(--gradient-start), var(--gradient-end))',
+              }}
+            ></div>
+          </h1>
+          <p className="text-lg mt-4" style={{ color: 'var(--text-secondary)' }}>Items requiring processing</p>
+        </div>
+        <div className="px-4 py-2 bg-primary/10 text-primary rounded-lg font-semibold">
           Total: {totalItems} items
         </div>
       </div>
 
       <div className="card">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-lg bg-red-50">
+            <AlertCircle className="text-red-600" size={24} />
+          </div>
+          <h2 className="text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>DLQ Items List</h2>
+        </div>
         {dlqItems.length === 0 ? (
-          <p>No items in Dead Letter Queue</p>
+          <div className="text-center py-12">
+            <AlertCircle className="mx-auto mb-4" size={48} style={{ color: 'var(--text-secondary)' }} />
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>No items in Dead Letter Queue</p>
+          </div>
         ) : (
           <>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Instance ID</th>
-                  <th>Workflow</th>
-                  <th>Step</th>
-                  <th>Type</th>
-                  <th>Error</th>
-                  <th>Reason</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dlqItems.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.id}</td>
-                    <td>
-                      <Link to={`/instances/${item.instance_id}`} className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}>
-                        {item.instance_id}
-                      </Link>
-                    </td>
-                    <td>{item.workflow_id}</td>
-                    <td>{item.step_name}</td>
-                    <td>
-                      <span className="status failed">{item.step_type}</span>
-                    </td>
-                    <td>
-                      {item.error ? (
-                        <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {item.error}
-                        </div>
-                      ) : '-'}
-                    </td>
-                    <td>{item.reason}</td>
-                    <td>{new Date(item.created_at).toLocaleString()}</td>
-                    <td>
-                      <Link to={`/dlq/${item.id}`} className="btn btn-primary">
-                        View & Requeue
-                      </Link>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Instance ID</th>
+                    <th>Workflow</th>
+                    <th>Step</th>
+                    <th>Type</th>
+                    <th>Error</th>
+                    <th>Reason</th>
+                    <th>Created</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {dlqItems.map((item) => (
+                    <tr key={item.id}>
+                      <td className="font-mono text-sm">{item.id}</td>
+                      <td>
+                        <Link 
+                          to={`/instances/${item.instance_id}`} 
+                          className="btn btn-primary text-xs px-3 py-1"
+                        >
+                          <ExternalLink size={14} />
+                          {item.instance_id}
+                        </Link>
+                      </td>
+                      <td className="font-medium">{item.workflow_id}</td>
+                      <td>{item.step_name}</td>
+                      <td>
+                        <span className="status failed">{item.step_type}</span>
+                      </td>
+                      <td>
+                        {item.error ? (
+                          <div className="max-w-[200px] truncate text-sm" title={item.error}>
+                            {item.error}
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)' }}>-</span>
+                        )}
+                      </td>
+                      <td className="text-sm">{item.reason}</td>
+                      <td className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                        <Calendar size={16} />
+                        {new Date(item.created_at).toLocaleString()}
+                      </td>
+                      <td>
+                        <Link to={`/dlq/${item.id}`} className="btn btn-primary">
+                          <Eye size={16} />
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+              <div className="flex justify-center items-center gap-4 mt-8">
                 <button
                   className="btn btn-secondary"
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                 >
+                  <ChevronLeft size={18} />
                   Previous
                 </button>
-                <span style={{ display: 'flex', alignItems: 'center', color: '#6b7280' }}>
+                <span className="flex items-center font-medium" style={{ color: 'var(--text-secondary)' }}>
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
@@ -142,6 +191,7 @@ export const DLQ: React.FC = () => {
                   disabled={currentPage === totalPages}
                 >
                   Next
+                  <ChevronRight size={18} />
                 </button>
               </div>
             )}

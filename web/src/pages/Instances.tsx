@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Pagination } from '../components/Pagination';
+import { Database, Eye, Calendar, Clock, Loader2, TrendingUp } from 'lucide-react';
 
 interface ActiveWorkflow {
   id: number;
@@ -56,7 +57,12 @@ export const Instances: React.FC = () => {
   }, [page, pageSize]);
 
   if (loading) {
-    return <div className="loading">Loading instances...</div>;
+    return (
+      <div className="loading flex items-center justify-center gap-3">
+        <Loader2 className="animate-spin text-primary" size={24} />
+        <span>Loading instances...</span>
+      </div>
+    );
   }
 
   if (error) {
@@ -65,67 +71,119 @@ export const Instances: React.FC = () => {
 
   return (
     <div>
-      <h1>Workflow Instances</h1>
+      <div className="mb-8">
+        <h1 
+          className="text-4xl font-bold mb-2 relative inline-block"
+          style={{ 
+            color: 'var(--text-primary)',
+            background: 'linear-gradient(135deg, var(--text-primary), var(--accent), var(--gradient-end))',
+            backgroundSize: '200% 200%',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            animation: 'gradient-shift 6s ease infinite',
+          }}
+        >
+          Workflow Instances
+          <div 
+            className="absolute bottom-0 left-0 w-24 h-1 rounded-full"
+            style={{
+              background: 'linear-gradient(to right, var(--gradient-start), var(--gradient-end))',
+            }}
+          ></div>
+        </h1>
+        <p className="text-lg mt-4" style={{ color: 'var(--text-secondary)' }}>Manage workflow instances</p>
+      </div>
       
       <div className="card">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Database className="text-primary" size={24} />
+          </div>
+          <h2 className="text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>Instance List</h2>
+        </div>
         {instances.length === 0 ? (
-          <p>No instances found</p>
+          <div className="text-center py-12">
+            <Database className="mx-auto mb-4" size={48} style={{ color: 'var(--text-secondary)' }} />
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>No instances found</p>
+          </div>
         ) : (
           <>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Workflow</th>
-                  <th>Status</th>
-                  <th>Duration</th>
-                  <th>Steps</th>
-                  <th>Progress</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {instances.map((instance) => (
-                  <tr key={instance.id}>
-                    <td>{instance.id}</td>
-                    <td>{instance.workflow_id}</td>
-                    <td>
-                      <span className={`status ${instance.status}`}>
-                        {instance.status}
-                      </span>
-                    </td>
-                    <td>{Math.round((new Date(instance.updated_at).getTime() - new Date(instance.started_at).getTime()) / 1000)}s</td>
-                    <td>
-                      {instance.completed_steps}/{instance.total_steps}
-                      {instance.rolled_back_steps > 0 && (
-                        <span style={{ color: '#fd7e14', marginLeft: '0.5rem' }}>
-                          ({instance.rolled_back_steps} rolled back)
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ width: '100px', backgroundColor: '#e9ecef', borderRadius: '4px' }}>
-                        <div 
-                          style={{ 
-                            width: `${(instance.completed_steps / instance.total_steps) * 100}%`,
-                            height: '8px',
-                            backgroundColor: instance.status === 'dlq' ? '#dc3545' : '#007bff',
-                            borderRadius: '4px'
-                          }}
-                        />
-                      </div>
-                    </td>
-                    <td>{new Date(instance.started_at).toLocaleString()}</td>
-                    <td>
-                      <Link to={`/instances/${instance.id}`} className="btn btn-primary">
-                        View Details
-                      </Link>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Workflow</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Steps</th>
+                    <th>Progress</th>
+                    <th>Created</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {instances.map((instance) => {
+                    const duration = Math.round((new Date(instance.updated_at).getTime() - new Date(instance.started_at).getTime()) / 1000);
+                    const progress = (instance.completed_steps / instance.total_steps) * 100;
+                    return (
+                      <tr key={instance.id}>
+                        <td className="font-mono text-sm">{instance.id}</td>
+                        <td className="font-medium">{instance.workflow_id}</td>
+                        <td>
+                          <span className={`status ${instance.status}`}>
+                            {instance.status}
+                          </span>
+                        </td>
+                        <td style={{ color: 'var(--text-secondary)', verticalAlign: 'middle' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Clock size={16} />
+                            {duration}s
+                          </span>
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm">
+                              {instance.completed_steps}/{instance.total_steps}
+                            </span>
+                            {instance.rolled_back_steps > 0 && (
+                              <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                                {instance.rolled_back_steps} rolled back
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="w-24 bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div 
+                              className={`h-full transition-all duration-300 rounded-full ${
+                                instance.status === 'dlq' 
+                                  ? 'bg-gradient-to-r from-red-500 to-red-600'
+                                  : 'bg-gradient-to-r from-primary to-secondary'
+                              }`}
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </td>
+                        <td style={{ color: 'var(--text-secondary)', verticalAlign: 'middle' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Calendar size={16} />
+                            {new Date(instance.started_at).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <Link to={`/instances/${instance.id}`} className="btn btn-primary">
+                            <Eye size={16} />
+                            Details
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
             <Pagination
               currentPage={page}
               pageSize={pageSize}

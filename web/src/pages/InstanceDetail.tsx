@@ -298,13 +298,13 @@ export const InstanceDetail: React.FC = () => {
                 {steps.map((step) => (
                   <li key={step.id} className="step-item">
                     <div className="step-header">
-                      <span className="step-name">{step.step_name}</span>
-                      <div>
+                      <div className="step-header-left">
+                        <span className="step-name">{step.step_name}</span>
                         <span className="step-type">{step.step_type}</span>
-                        <span className={`status ${step.status}`} style={{ marginLeft: '0.5rem' }}>
-                          {step.status}
-                        </span>
                       </div>
+                      <span className={`status ${step.status}`} style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+                        {step.status}
+                      </span>
                     </div>
                     <div className="step-details">
                       <div>
