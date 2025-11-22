@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { WorkflowGraph } from '../components/WorkflowGraph';
+import { Pagination } from '../components/Pagination';
 
 interface WorkflowDefinition {
     id: string;
@@ -23,19 +24,34 @@ interface WorkflowInstance {
     updated_at: string;
 }
 
+interface PaginatedInstancesResponse {
+    items: WorkflowInstance[];
+    page: number;
+    page_size: number;
+    total: number;
+}
+
 export const WorkflowDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [workflow, setWorkflow] = useState<WorkflowDefinition | null>(null);
     const [instances, setInstances] = useState<WorkflowInstance[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
+    const [total, setTotal] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                setLoading(true);
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    page_size: pageSize.toString(),
+                });
                 const [workflowRes, instancesRes] = await Promise.all([
                     fetch(`/api/workflows/${id}`),
-                    fetch(`/api/workflows/${id}/instances`)
+                    fetch(`/api/workflows/${id}/instances?${params}`)
                 ]);
 
                 if (!workflowRes.ok) {
@@ -46,8 +62,9 @@ export const WorkflowDetail: React.FC = () => {
                 setWorkflow(workflowData);
 
                 if (instancesRes.ok) {
-                    const instancesData = await instancesRes.json();
-                    setInstances(instancesData);
+                    const instancesData: PaginatedInstancesResponse = await instancesRes.json();
+                    setInstances(instancesData.items);
+                    setTotal(instancesData.total);
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error');
@@ -59,7 +76,7 @@ export const WorkflowDetail: React.FC = () => {
         if (id) {
             fetchData();
         }
-    }, [id]);
+    }, [id, page, pageSize]);
 
     if (loading) {
         return <div className="loading">Loading workflow details...</div>;
@@ -102,38 +119,50 @@ export const WorkflowDetail: React.FC = () => {
                 {instances.length === 0 ? (
                     <p>No instances found for this workflow</p>
                 ) : (
-                    <table className="table">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th>Started</th>
-                            <th>Completed</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {instances.map((instance) => (
-                            <tr key={instance.id}>
-                                <td>{instance.id}</td>
-                                <td>
-                    <span className={`status ${instance.status}`}>
-                      {instance.status}
-                    </span>
-                                </td>
-                                <td>{new Date(instance.created_at).toLocaleString()}</td>
-                                <td>{instance.started_at ? new Date(instance.started_at).toLocaleString() : '-'}</td>
-                                <td>{instance.completed_at ? new Date(instance.completed_at).toLocaleString() : '-'}</td>
-                                <td>
-                                    <Link to={`/instances/${instance.id}`} className="btn btn-primary">
-                                        View Details
-                                    </Link>
-                                </td>
+                    <>
+                        <table className="table">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Started</th>
+                                <th>Completed</th>
+                                <th>Actions</th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {instances.map((instance) => (
+                                <tr key={instance.id}>
+                                    <td>{instance.id}</td>
+                                    <td>
+                        <span className={`status ${instance.status}`}>
+                          {instance.status}
+                        </span>
+                                    </td>
+                                    <td>{new Date(instance.created_at).toLocaleString()}</td>
+                                    <td>{instance.started_at ? new Date(instance.started_at).toLocaleString() : '-'}</td>
+                                    <td>{instance.completed_at ? new Date(instance.completed_at).toLocaleString() : '-'}</td>
+                                    <td>
+                                        <Link to={`/instances/${instance.id}`} className="btn btn-primary">
+                                            View Details
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                        <Pagination
+                            currentPage={page}
+                            pageSize={pageSize}
+                            total={total}
+                            onPageChange={setPage}
+                            onPageSizeChange={(newPageSize) => {
+                                setPageSize(newPageSize);
+                                setPage(1);
+                            }}
+                        />
+                    </>
                 )}
             </div>
         </div>
